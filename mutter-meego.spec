@@ -49,12 +49,15 @@ Requires: gtk-doc
 %description doc
 API reference for libmeego-panel for use with DevHelp.
 
-%package branding-upstream
-Summary: Mutter-meego default theme files
-License: Restricted
-Group: System/Desktop
-Requires: %{name} = %{version}-%{release}
-Provides: mutter-meego-branding
+# Can't distribute this because we don't fulfill all requirements
+# of the MeeGo Compliance Program
+#
+#%package branding-upstream
+#Summary: Mutter-meego default theme files
+#License: Restricted
+#Group: System/Desktop
+#Requires: %{name} = %{version}-%{release}
+#Provides: mutter-meego-branding
 
 %description branding-upstream
 Default theme files for the Netbook UX Shell.
@@ -144,7 +147,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc %{_datadir}/gtk-doc/html/meego-panel
 
-%files branding-upstream
-%defattr(-,root,root,-)
-%dir %{_datadir}/mutter-meego/theme
-%{_datadir}/mutter-meego/theme/*
+#%files branding-upstream
+#%defattr(-,root,root,-)
+#%dir %{_datadir}/mutter-meego/theme
+#%{_datadir}/mutter-meego/theme/*
