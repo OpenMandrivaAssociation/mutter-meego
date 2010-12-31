@@ -1,105 +1,150 @@
-%define panel_name	meego-panel
-%define panel_major	0
-%define panel_libname	%mklibname %{panel_name} %{panel_major}
-%define panel_develname	%mklibname %{panel_name} -d
-
 Name: mutter-meego
 Summary: MeeGo Netbook plugin for Metacity Clutter, aka, Mutter
 Group: Graphical desktop/Other 
 Version: 0.76.10
 License: GPLv2
 URL: http://www.meego.com
-Release: %mkrel 4
+Release: %mkrel 5
 Source0: http://repo.meego.com/MeeGo/releases/1.1/netbook/repos/source/mutter-meego-%{version}.tar.bz2
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+Requires: mx
+Requires: gnome-menus
+#Requires: meego-menus
+Requires: matchbox-panel
+Requires: mutter-meego-branding
+Requires: meego-mutter
+Requires: GConf2
+BuildRequires: mx-devel >= 0.9.0
 BuildRequires: startup-notification-devel
+#BuildRequires: mutter-plugins
 BuildRequires: libmesagl-devel
 BuildRequires: meego-mutter-devel
 BuildRequires: libgnome-menu-devel
 BuildRequires: libgtk+2-devel
 BuildRequires: libdbus-glib-devel
+BuildRequires: libGConf2-devel
+BuildRequires: libxscrnsaver-devel
 BuildRequires: gnome-common
 BuildRequires: intltool
 BuildRequires: libclutter-gtk0.10-devel
 BuildRequires: gnome-control-center-netbook-devel
-Requires: gnome-menus
-Requires: meego-mutter
-Requires: %{panel_libname} = %{version}-%{release}
 Obsoletes: mutter-moblin <= 0.43.2
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 MeeGo Netbook plugin for Metacity Clutter, aka, Mutter
 
-%package -n %{panel_libname}
-Summary: MeeGo panel libraries
-Group: System/Libraries
-
-%description -n %{panel_libname}
-MeeGo panel libraries
-
-%package -n %{panel_develname}
-Summary: Development libraries and headers for %{panel_name}
+%package devel
+Summary: Development libraries and headers for %{name}
 Group: Development/C
-Requires: %{panel_libname} = %{version}-%{release}
-Provides: %{panel_name}-devel
+Requires: %{name} = %{version}-%{release}
 
-%description -n %{panel_develname}
-Development environment for %{panel_name}
+%description devel
+Development environment for %{name}
+
+%package doc
+Summary: API reference for libmeego-panel
+Group: Development/Libraries
+Requires: gtk-doc
+
+%description doc
+API reference for libmeego-panel for use with DevHelp.
+
+%package branding-upstream
+Summary: Mutter-meego default theme files
+License: Restricted
+Group: System/Desktop
+Requires: %{name} = %{version}-%{release}
+Provides: mutter-meego-branding
+
+%description branding-upstream
+Default theme files for the Netbook UX Shell.
+
 
 %prep
 %setup -q
 
 %build
-%configure2_5x --disable-static
+%configure2_5x \
+  --disable-static
 %make
 
 %install
 rm -rf %{buildroot}
 %makeinstall_std
 
-%find_lang %{name}
+desktop-file-install \
+  --delete-original \
+  --dir %{buildroot}%{_datadir}/applications \
+  %{buildroot}%{_datadir}/applications/*.desktop
+
+%find_lang mutter-meego-netbook-plugin
 
 mkdir -p %{buildroot}/%{_datadir}/doc/%{name}-%{version}
 for f in `ls %{buildroot}/%{_datadir}/doc/`; do
-	if [ -f %{buildroot}/%{_datadir}/doc/$f ]; then
-		mv %{buildroot}/%{_datadir}/doc/$f %{buildroot}/%{_datadir}/doc/%{name}-%{version}
-	fi
+  if [ -f %{buildroot}/%{_datadir}/doc/$f ]; then
+    mv %{buildroot}/%{_datadir}/doc/$f \
+      %{buildroot}/%{_datadir}/doc/%{name}-%{version}
+  fi
 done
 
-rm -Rf %{buildroot}%{_sysconfdir}/gconf/schemas/mutter-meego.schemas
-rm -Rf %{buildroot}%{_bindir}/meego-launch
-rm -Rf %{buildroot}%{_bindir}/meego-toolbar-properties
-rm -Rf %{buildroot}%{_includedir}/mutter-meego
-rm -Rf %{buildroot}%{_libdir}/control-center-1/extensions/libmtp.la
-rm -Rf %{buildroot}%{_libdir}/control-center-1/extensions/libmtp.so
-rm -Rf %{buildroot}%{_libdir}/control-center-1/extensions/libsystray.la
-rm -Rf %{buildroot}%{_libdir}/control-center-1/extensions/libsystray.so
-rm -Rf %{buildroot}%{_libdir}/libmtp-common.la
-rm -Rf %{buildroot}%{_libdir}/libmtp-common.so
-rm -Rf %{buildroot}%{_libdir}/libmtp-common.so.0
-rm -Rf %{buildroot}%{_libdir}/libmtp-common.so.0.0.0
-rm -Rf %{buildroot}%{_libdir}/meego-app-launches-store
-rm -Rf %{buildroot}%{_datadir}/applications
-rm -Rf %{buildroot}%{_datadir}/gtk-doc
+rm %{buildroot}%{_libdir}/libmeego-panel.la
+rm %{buildroot}%{_libdir}/libmtp-common.la
+
+
+%pre
+if [ "$1" -gt 1 ]; then
+  export GCONF_CONFIG_SOURCE=`gconftool-2 --get-default-source`
+  gconftool-2 --makefile-uninstall-rule \
+    %{_sysconfdir}/gconf/schemas/mutter-meego.schemas \
+    > /dev/null || :
+fi
+
+%preun
+if [ "$1" -eq 0 ]; then
+  export GCONF_CONFIG_SOURCE=`gconftool-2 --get-default-source`
+  gconftool-2 --makefile-uninstall-rule \
+    %{_sysconfdir}/gconf/schemas/mutter-meego.schemas \
+    > /dev/null || :
+fi
+
+%post
+/sbin/ldconfig
+export GCONF_CONFIG_SOURCE=`gconftool-2 --get-default-source`
+gconftool-2 --makefile-install-rule \
+    %{_sysconfdir}/gconf/schemas/mutter-meego.schemas  > /dev/null || :
+
+%postun -p /sbin/ldconfig
 
 %clean
 rm -rf %{buildroot}
 
-%files -f %{name}.lang
+%files -f mutter-meego-netbook-plugin.lang
 %defattr(-,root,root,-)
 %doc COPYING NEWS AUTHORS README ChangeLog
-%{_libdir}/mutter/plugins/*
-%{_datadir}/mutter-meego/*
-%{_datadir}/locale/*
+%{_libdir}/lib*.so.*
+%{_libdir}/mutter/plugins/meego-netbook*
+%{_libdir}/control-center*
+%dir %{_datadir}/mutter-meego
+%dir %{_datadir}/mutter-meego/dbus-xml
+%{_datadir}/mutter-meego/dbus-xml/*
+%{_datadir}/applications/meego-toolbar-properties.desktop
+%{_datadir}/applications/system-tray-properties.desktop
+%{_sysconfdir}/gconf/schemas/mutter-meego.schemas
+%{_libdir}/meego-app-launches-store
+%{_bindir}/*
 
-%files -n %{panel_libname}
+%files devel
 %defattr(-,root,root,-)
-%{_libdir}/lib%{panel_name}.so.%{panel_major}*
+%dir %{_includedir}
+%{_libdir}/lib*.so
+%{_libdir}/pkgconfig/*.pc
+%{_includedir}/*
 
-%files -n %{panel_develname}
+%files doc
 %defattr(-,root,root,-)
-%dir %{_includedir}/lib%{panel_name}
-%{_includedir}/lib%{panel_name}/*
-%{_libdir}/lib%{panel_name}.la
-%{_libdir}/lib%{panel_name}.so
-%{_libdir}/pkgconfig/%{panel_name}.pc
+%doc %{_datadir}/gtk-doc/html/meego-panel
+
+%files branding-upstream
+%defattr(-,root,root,-)
+%dir %{_datadir}/mutter-meego/theme
+%{_datadir}/mutter-meego/theme/*
