@@ -3,7 +3,7 @@ Summary: MeeGo Netbook plugin for Metacity Clutter, aka, Mutter
 Group: Graphical desktop/Other 
 Version: 0.76.10
 License: GPLv2
-URL: http://www.meego.com
+URL: https://www.meego.com
 Release: %mkrel 5
 Source0: http://repo.meego.com/MeeGo/releases/1.1/netbook/repos/source/mutter-meego-%{version}.tar.bz2
 Requires: mx
