@@ -13,6 +13,11 @@ Requires: matchbox-panel
 Requires: mutter-meego-branding
 Requires: meego-mutter
 Requires: GConf2
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires: mx-devel >= 0.9.0
 BuildRequires: startup-notification-devel
 #BuildRequires: mutter-plugins
