@@ -4,7 +4,7 @@ Group: Graphical desktop/Other
 Version: 0.76.10
 License: GPLv2
 URL: https://www.meego.com
-Release: %mkrel 5
+Release: 6
 Source0: http://repo.meego.com/MeeGo/releases/1.1/netbook/repos/source/mutter-meego-%{version}.tar.bz2
 Requires: mx
 Requires: gnome-menus
